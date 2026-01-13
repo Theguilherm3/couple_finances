@@ -6,15 +6,8 @@ from db.base import Base
 from db.session import engine, get_db
 from models.category import Category
 
+Base.metadata.create_all(bind=engine)
 app = FastAPI(title="API Dados Financeiros - Casal")
-
-
-@app.on_event("startup")
-def on_startup():
-    import models.bill  # noqa: F401
-    import models.category  # noqa: F401
-
-    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/health")
