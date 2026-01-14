@@ -20,10 +20,14 @@ class Bill(Base):
     description: Mapped[str] = mapped_column(String(160), nullable=False)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
-    paymend_date: Mapped[date] = mapped_column(Date, nullable=True)
+    payment_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     owner: Mapped[OwnerEnum] = mapped_column(Enum(OwnerEnum), nullable=False)
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id"), nullable=False
     )
 
     category = relationship("Category")
+
+    @property
+    def paid(self) -> bool:
+        return self.payment_date is not None
