@@ -23,3 +23,9 @@ import models.bill # noqa: F401
 uv run alembic revision --autogenerate -m "mensagem curta aqui"
 
 uv run alembic upgrade head
+
+github passo a passo usando main:
+git status (Verificar as mudanças)
+git add . (adicionar todas as mudanças, dos arquivos listados)
+git commit -m "" (comitar mudanças da branch)
+git push (enviar as mudanças pro github)
