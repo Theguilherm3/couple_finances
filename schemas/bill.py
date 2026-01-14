@@ -23,3 +23,7 @@ class BillOut(BaseModel):
     owner: OwnerEnum
     category_id: int
     paid: bool
+
+
+class BillPay(BaseModel):
+    payment_date: date = Field(default_factory=date.today)

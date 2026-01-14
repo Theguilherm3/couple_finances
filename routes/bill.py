@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from core.security import require_api_key
 from db.session import get_db
-from schemas.bill import BillCreate, BillOut
-from services.bills import create_bill, list_bills
+from schemas.bill import BillCreate, BillOut, BillPay
+from services.bills import create_bill, get_bill_by_id, list_bills, pay_bill
 
 router = APIRouter(dependencies=[Depends(require_api_key)])
 
@@ -14,6 +14,20 @@ def get_list_bills(db: Session = Depends(get_db)):
     return list_bills(db)
 
 
+@router.get("/bills/{id}", response_model=BillOut)
+def get_bill_id(id: int, db: Session = Depends(get_db)):
+    return get_bill_by_id(db, id)
+
+
 @router.post("/bills", response_model=BillCreate, status_code=201)
 def post_bill(payload: BillCreate, db: Session = Depends(get_db)):
     return create_bill(db, payload)
+
+
+@router.patch(
+    "/bills/{id}/pay",
+    response_model=BillOut,
+    description="Lança o pagamento de uma despesa",
+)
+def patch_bill(id: int, payload: BillPay, db: Session = Depends(get_db)):
+    return pay_bill(db, id, payload)
