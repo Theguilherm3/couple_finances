@@ -31,3 +31,12 @@ def post_bill(payload: BillCreate, db: Session = Depends(get_db)):
 )
 def patch_bill(id: int, payload: BillPay, db: Session = Depends(get_db)):
     return pay_bill(db, id, payload)
+
+
+@router.patch(
+    "bills/{id}/update",
+    response_model=BillOut,
+    description="Atualiza as informações de uma despesa",
+)
+def bill_changes(id, payload: BillCreate, db=Depends(get_db)):
+    return (db, id, payload)
