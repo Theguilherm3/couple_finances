@@ -1,13 +1,26 @@
 # to run use: uv run uvicorn main:app
-from fastapi import Depends, FastAPI
-from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 
 from db.base import Base
-from db.session import engine, get_db
-from models.category import Category
+from db.session import engine
+from routes.categories import router as categories_router
 
-Base.metadata.create_all(bind=engine)
-app = FastAPI(title="API Dados Financeiros - Casal")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    import models.bill  # noqa: F401
+    import models.category  # noqa: F401
+
+    # cria as tabelas, caso nao existam
+    Base.metadata.create_all(bind=engine)
+
+    # aplicacao roda no yield
+    yield
+
+
+app = FastAPI(title="APLI Dados Financeiros - Casal", lifespan=lifespan)
 
 
 @app.get("/health")
@@ -15,7 +28,4 @@ def health():
     return {"ok": True, "status": "running"}
 
 
-@app.get("/categories")
-def list_categories(db: Session = Depends(get_db)):
-    categories = db.query(Category).all()
-    return categories
+app.include_router(categories_router, tags=["categories"])
