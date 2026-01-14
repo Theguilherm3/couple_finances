@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from core.security import require_api_key
 from db.session import get_db
 from models.category import Category
 from schemas.category import CategoryCreate, CategoryOut
+from services.categories import create_category
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
 @router.get("/categories", response_model=list[CategoryOut])
@@ -15,17 +17,5 @@ def list_categories(db: Session = Depends(get_db)):
 
 
 @router.post("/categories", response_model=CategoryOut, status_code=201)
-def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
-    existing = db.query(Category).filter(Category.name == payload.name).first()
-    if existing:
-        raise HTTPException(status_code=409, detail="Categoria já existe")
-
-    # Cria o objeto
-    category = Category(name=payload.name)
-
-    # Salva o objeto e comita
-    db.add(category)
-    db.commit()
-    db.refresh(category)
-
-    return category
+def post_category(payload: CategoryCreate, db: Session = Depends(get_db)):
+    return create_category(db, payload.name)
