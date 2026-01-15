@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
-from models.bill import Bill
+from models.bill import Bill, OwnerEnum
 from models.category import Category
 from schemas.bill import BillCreate, BillPay, BillUpdate
 
@@ -19,13 +19,18 @@ def create_bill(db: Session, bill: BillCreate):
     return new_bill
 
 
-def list_bills(db: Session):
-    return (
-        db.query(Bill)
-        .options(joinedload(Bill.category))
-        .order_by(Bill.description.asc)
-        .all
-    )
+def list_bills(
+    db: Session, owner: OwnerEnum | None = None, show_paid: bool | None = None
+):
+    query = db.query(Bill).options(joinedload(Bill.category))
+
+    if owner:
+        query = query.filter(Bill.owner == owner)
+
+    if not show_paid:
+        query = query.filter(Bill.payment_date == None)
+
+    return query.order_by(Bill.due_date.desc()).all()
 
 
 def pay_bill(db: Session, id: int, billpayment: BillPay):

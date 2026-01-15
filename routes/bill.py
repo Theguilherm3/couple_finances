@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 
 from core.security import require_api_key
 from db.session import get_db
+from models.bill import OwnerEnum
 from schemas.bill import BillCreate, BillOut, BillPay, BillUpdate
 from services.bills import (
     create_bill,
+    delete_bill,
     get_bill_by_id,
     list_bills,
     pay_bill,
@@ -16,8 +18,12 @@ router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
 @router.get("/bills", response_model=list[BillOut])
-def get_list_bills(db: Session = Depends(get_db)):
-    return list_bills(db)
+def get_list_bills(
+    db: Session = Depends(get_db),
+    owner: OwnerEnum | None = None,
+    show_paid: bool = True,
+):
+    return list_bills(db, owner, show_paid)
 
 
 @router.get("/bills/{id}", response_model=BillOut)
@@ -46,3 +52,8 @@ def patch_bill(id: int, payload: BillPay, db: Session = Depends(get_db)):
 )
 def bill_changes(id, payload: BillUpdate, db=Depends(get_db)):
     return update_bill(db, id, payload)
+
+
+@router.delete("/bills/{id}", status_code=204)
+def delete_a_bill(id, db: Session = Depends(get_db)):
+    delete_bill(db, id)
