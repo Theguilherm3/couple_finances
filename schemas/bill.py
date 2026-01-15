@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from models.bill import OwnerEnum
 from schemas.category import CategoryOut
@@ -13,6 +13,11 @@ class BillCreate(BaseModel):
     payment_date: date | None = None
     owner: OwnerEnum
     category_id: int
+
+    @field_validator("description")
+    @classmethod
+    def format_description(cls, v: str) -> str:
+        return v.title()
 
 
 class BillOut(BaseModel):
