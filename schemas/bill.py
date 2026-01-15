@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from models.bill import OwnerEnum
 from schemas.category import CategoryOut
@@ -30,8 +30,7 @@ class BillOut(BaseModel):
     category: CategoryOut | None = None
     paid: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BillPay(BaseModel):

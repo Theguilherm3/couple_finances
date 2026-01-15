@@ -17,7 +17,7 @@ from services.bills import (
 router = APIRouter(dependencies=[Depends(require_api_key)])
 
 
-@router.get("/bills", response_model=list[BillOut])
+@router.get("/bills", response_model=list[BillOut], status_code=200)
 def get_list_bills(
     db: Session = Depends(get_db),
     owner: OwnerEnum | None = None,
