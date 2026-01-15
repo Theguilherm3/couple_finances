@@ -1,9 +1,9 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from models.bill import Bill
 from models.category import Category
-from schemas.bill import BillCreate, BillPay
+from schemas.bill import BillCreate, BillPay, BillUpdate
 
 
 def create_bill(db: Session, bill: BillCreate):
@@ -20,14 +20,19 @@ def create_bill(db: Session, bill: BillCreate):
 
 
 def list_bills(db: Session):
-    return db.query(Bill).order_by(Bill.description.desc()).all()
+    return (
+        db.query(Bill)
+        .options(joinedload(Bill.category))
+        .order_by(Bill.description.asc)
+        .all
+    )
 
 
 def pay_bill(db: Session, id: int, billpayment: BillPay):
     bill = db.query(Bill).filter(Bill.id == id).first()
 
     if not bill:
-        raise HTTPException(status_code=401, detail="Despesa não encontrada")
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
 
     elif bill.payment_date:
         raise HTTPException(status_code=409, detail="Despesa já está como paga!")
@@ -40,10 +45,15 @@ def pay_bill(db: Session, id: int, billpayment: BillPay):
 
 
 def get_bill_by_id(db: Session, bill_id):
-    bill = db.query(Bill).filter(Bill.id == bill_id).first()
+    bill = (
+        db.query(Bill)
+        .options(joinedload(Bill.category))
+        .filter(Bill.id == bill_id)
+        .first()
+    )
 
     if not bill:
-        raise HTTPException(status_code=401, detail="Despesa não encontrada")
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
 
     return bill
 
@@ -52,19 +62,21 @@ def delete_bill(db: Session, bill_id):
     bill = db.query(Bill).filter(Bill.id == bill_id).first()
 
     if not bill:
-        raise HTTPException(status_code=401, detail="Despesa não encontrada")
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
 
     db.delete(bill)
     db.commit()
 
 
-def update_bill(db: Session, id, bill_data: BillCreate):
+def update_bill(db: Session, id, bill_data: BillUpdate):
     existis = db.query(Bill).filter(Bill.id == id).first()
 
     if not existis:
-        raise HTTPException(status_code=401, detail="Despesa não encontrada")
+        raise HTTPException(status_code=404, detail="Despesa não encontrada")
 
-    for campo, valor in bill_data.model_dump(exclude_unset=True).items():
+    update_data = bill_data.model_dump(exclude_unset=True)
+
+    for campo, valor in update_data.items():
         setattr(existis, campo, valor)
 
     db.commit()

@@ -3,6 +3,7 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 from models.bill import OwnerEnum
+from schemas.category import CategoryOut
 
 
 class BillCreate(BaseModel):
@@ -21,9 +22,21 @@ class BillOut(BaseModel):
     due_date: date
     payment_date: date | None = None
     owner: OwnerEnum
-    category_id: int
+    category: CategoryOut | None = None
     paid: bool
+
+    class Config:
+        from_attributes = True
 
 
 class BillPay(BaseModel):
     payment_date: date = Field(default_factory=date.today)
+
+
+class BillUpdate(BaseModel):
+    description: str | None = None
+    amount: float | None = None
+    due_date: date | None = None
+    payment_date: date | None = None
+    owner: OwnerEnum | None = None
+    category_id: int | None = None
